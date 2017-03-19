@@ -49,7 +49,11 @@
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterBackground:) name:UIApplicationWillResignActiveNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(willEnterForeground:) name:UIApplicationDidBecomeActiveNotification object:nil];
-        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(statusBarChanged:) name:UIApplicationWillChangeStatusBarOrientationNotification object:nil];
+        [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+        [[NSNotificationCenter defaultCenter]
+         addObserver:self selector:@selector(orientationChanged:)
+         name:UIDeviceOrientationDidChangeNotification
+         object:[UIDevice currentDevice]];
         
         self.beautyFace = YES;
         self.beautyLevel = 0.5;
@@ -354,6 +358,26 @@
 
 - (void)willEnterForeground:(NSNotification *)notification {
     [self.videoCamera resumeCameraCapture];
+}
+
+- (void) orientationChanged:(NSNotification *)note
+{
+    UIDevice * device = note.object;
+    if(self.configuration.autorotate){
+        if (self.configuration.landscape) {
+            if (device.orientation == UIDeviceOrientationLandscapeLeft) {
+                self.videoCamera.outputImageOrientation = UIInterfaceOrientationLandscapeRight;
+            } else if (device.orientation == UIDeviceOrientationLandscapeRight) {
+                self.videoCamera.outputImageOrientation = UIInterfaceOrientationLandscapeLeft;
+            }
+        } else {
+            if (device.orientation == UIDeviceOrientationPortrait) {
+                self.videoCamera.outputImageOrientation = UIInterfaceOrientationPortraitUpsideDown;
+            } else if (device.orientation == UIDeviceOrientationPortraitUpsideDown) {
+                self.videoCamera.outputImageOrientation = UIInterfaceOrientationPortrait;
+            }
+        }
+    }
 }
 
 @end
